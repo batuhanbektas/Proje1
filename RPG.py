@@ -45,6 +45,5 @@ Health = {self.hp}
 player = Hero()
 creature = Enemy()
 
-player.Info()
-creature.Info()
+
 
