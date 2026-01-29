@@ -1,11 +1,20 @@
 import random as rnd
 
-class Hero:
-    def __init__(self, name="Player"): # Varsayılan isim atadık
+
+class Character:
+    def __init__(self, name="none"): # Varsayılan isim atadık
         self.hp = 100
         self.ad = rnd.randint(5, 15) # Hasarı biraz artırdım
         self.name = name
+    
+    def Info(self):
+        print(f"[{self.name}] Can: {self.hp} | Güç: {self.ad}")
 
+
+
+
+class Hero(Character):
+  
     def Attack(self, target):
         dice = rnd.randint(1, 20)
         print(f"\n🎲 Zar Attın: {dice}")
@@ -30,25 +39,25 @@ class Hero:
                 self.hp = 100
         print(f"💚 {self.name} iyileşti. Yeni Can: {self.hp}")
 
-    def Info(self):
-        print(f"[{self.name}] Can: {self.hp} | Güç: {self.ad}")
-
-class Enemy:
+class Enemy(Character):
     def __init__(self):
-        self.hp = 50
-        self.ad = rnd.randint(5, 10)
-        races = ["Goblin", "Ork", "Blight"]
-        self.name = rnd.choice(races)
-    
-    # Düşmana da basit bir saldırı yeteneği ekledik
+        # Önce rastgele bir ırk seçelim
+        races = ["Goblin", "Ork", "Blight", "Troll"]
+        race_name = rnd.choice(races)
+        
+        # ŞİMDİ üst sınıfın (Character) özelliklerini çağırıyoruz
+        # super().__init__(name) diyerek ismi yukarıya gönderiyoruz
+        super().__init__(name=race_name)
+        
+        # Düşmanın canını kahramandan biraz daha az yapabiliriz (isteğe bağlı)
+        self.hp = rnd.randint(50, 80)
+
+    # Attack ve Info metodların aynen kalabilir...
     def Attack(self, target):
         damage = self.ad
         target.hp -= damage
         print(f"👹 {self.name} sana saldırdı! {damage} hasar aldın.")
-
-    def Info(self):
-        print(f"[{self.name}] Can: {self.hp} | Güç: {self.ad}")
-
+        
 # --- OYUN BAŞLIYOR ---
 
 isim = input("Kahramanın adı ne olsun?: ")
