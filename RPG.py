@@ -6,9 +6,25 @@ class Character:
         self.hp = 100
         self.ad = rnd.randint(5, 15) # Hasarı biraz artırdım
         self.name = name
+        self.xp = 0
+        self.level = 1
+        self.xp_to_nextlevel = 20
+
+    def xpGained(self,target):
+        self.xp += target.xp
+        if(self.xp >= self.xp_to_nextlevel):
+            self.level += 1
+            print("LEVEL ATLADIN.")
+            print(f"Yeni Level: {self.level}")
+            self.xp -= self.xp_to_nextlevel
+            self.xp_to_nextlevel += 10
+        else:
+            pass
+    
+
     
     def Info(self):
-        print(f"[{self.name}] Can: {self.hp} | Güç: {self.ad}")
+        print(f"[{self.name}] Can: {self.hp} | Güç: {self.ad} | Level: {self.level} | XP:{self.xp}")
 
 
 
@@ -44,13 +60,25 @@ class Enemy(Character):
         # Önce rastgele bir ırk seçelim
         races = ["Goblin", "Ork", "Blight", "Troll"]
         race_name = rnd.choice(races)
+
+       
         
         # ŞİMDİ üst sınıfın (Character) özelliklerini çağırıyoruz
         # super().__init__(name) diyerek ismi yukarıya gönderiyoruz
         super().__init__(name=race_name)
+
+        if(self.name == "Ork"):
+            self.xp = 25
+        elif(self.name == "Troll"):
+            self.xp = 20
+        elif(self.name == "Goblin"):
+            self.xp = 10
+        else:
+            self.xp = 15
         
         # Düşmanın canını kahramandan biraz daha az yapabiliriz (isteğe bağlı)
-        self.hp = rnd.randint(50, 80)
+        self.hp = rnd.randint(20,30)
+        self.ad = 5
 
     # Attack ve Info metodların aynen kalabilir...
     def Attack(self, target):
@@ -64,9 +92,12 @@ isim = input("Kahramanın adı ne olsun?: ")
 player = Hero(isim)
 creature = Enemy()
 
-print(f"\nKarşına vahşi bir {creature.name} çıktı!")
+
 
 while True:
+
+    
+    
     print("-" * 30)
     player.Info()
     creature.Info()
@@ -78,7 +109,10 @@ while True:
         break
     if creature.hp <= 0:
         print(f"\n🏆 KAZANDIN! {creature.name} öldü.")
-        break
+        player.xpGained(creature)
+        creature = Enemy()
+        print(f"\nKarşına vahşi bir {creature.name} çıktı!")
+        continue
 
     print("\nNe yapacaksın?")
     print("1. Saldır")
