@@ -1,5 +1,5 @@
 import random as rnd
-
+import Magaza
 
 class Character:
     def __init__(self, name="none"): # Varsayılan isim atadık
@@ -10,11 +10,17 @@ class Character:
         self.level = 1
         self.xp_to_nextlevel = 20
 
+        # Envanter
+
+        self.potion = 10
+
     def xpGained(self,target):
         self.xp += target.xp
         if(self.xp >= self.xp_to_nextlevel):
             self.level += 1
             print("LEVEL ATLADIN.")
+            self.ad += rnd.randint(5,10)
+            print(f"YENİ SALDIRI HASARIN: {self.ad}")
             print(f"Yeni Level: {self.level}")
             self.xp -= self.xp_to_nextlevel
             self.xp_to_nextlevel += 10
@@ -47,13 +53,17 @@ class Hero(Character):
             print(f"⚔️ {self.name}, {target.name} hedefine {damage} hasar verdi.")
         
     def Heal(self):
-        if(self.hp==100):
-            pass
+        if(self.potion > 0):
+            if(self.hp==100):
+                print("Canın zaten dolu")
+            else:
+                self.hp += 15 # Değer ataması düzeltildi (+=)
+                if(self.hp >= 100):
+                    self.hp = 100
+                self.potion -= 1        
+                print(f"💚 {self.name} iyileşti. Yeni Can: {self.hp}. Kalan iksir:{self.potion}")
         else:
-            self.hp += 15 # Değer ataması düzeltildi (+=)
-            if(self.hp >= 100):
-                self.hp = 100
-        print(f"💚 {self.name} iyileşti. Yeni Can: {self.hp}")
+            print("İksirin kalmadı!!!")
 
 class Enemy(Character):
     def __init__(self):
@@ -111,15 +121,17 @@ while True:
         print(f"\n🏆 KAZANDIN! {creature.name} öldü.")
         player.xpGained(creature)
         creature = Enemy()
+        Magaza.Magaza(player)
         print(f"\nKarşına vahşi bir {creature.name} çıktı!")
-        continue
+        
+
 
     print("\nNe yapacaksın?")
     print("1. Saldır")
     print("2. İyileş")
     print("3. Çık")
     
-    secim = input("Seçimin (1 veya 2): ") # input ile string alıyoruz
+    secim = input("Seçimin : ") # input ile string alıyoruz
 
 
 
