@@ -5,14 +5,13 @@ import os
 import subprocess
 import threading
 
-# --- AYARLAR ---
-# Buraya GitHub'daki "Raw" formatındaki linklerini yapıştıracaksın.
-# Şimdilik örnek linkler koyuyorum, kendi linklerinle değiştirmelisin.
-VERSION_URL = "https://raw.githubusercontent.com/KULLANICI_ADIN/REPO_ADIN/main/version.txt"
-GAME_URL = "https://raw.githubusercontent.com/KULLANICI_ADIN/REPO_ADIN/main/oyun.exe"
+# --- SENİN LİNKLERİN ---
+VERSION_URL = "https://github.com/batuhanbektas/Proje1/raw/refs/heads/main/version.txt"
+GAME_URL = "https://github.com/batuhanbektas/Proje1/raw/refs/heads/main/dist/RPG.exe"
 
-GAME_FILENAME = "oyun.exe" # İndirilecek oyunun adı
-LOCAL_VERSION_FILE = "version.txt" # Bilgisayarda tutulan versiyon dosyası
+# Bilgisayara bu isimle inecek (Repo'daki isimle aynı yaptım)
+GAME_FILENAME = "RPG.exe" 
+LOCAL_VERSION_FILE = "version.txt" 
 
 class LauncherApp:
     def __init__(self, root):
@@ -44,37 +43,52 @@ class LauncherApp:
         threading.Thread(target=self.check_updates).start()
 
     def get_local_version(self):
+        # Eğer bilgisayarda version.txt varsa oku, yoksa 0.0 döndür
         if os.path.exists(LOCAL_VERSION_FILE):
             with open(LOCAL_VERSION_FILE, "r") as f:
                 return f.read().strip()
-        return "0.0" # Dosya yoksa hiç yüklenmemiş demektir
+        return "0.0"
 
     def check_updates(self):
         try:
-            # İnternetteki versiyonu çek
             self.status_label.config(text="Sunucuya bağlanılıyor...")
+            
+            # 1. GitHub'daki versiyonu öğren
             response = requests.get(VERSION_URL)
+            if response.status_code != 200:
+                raise Exception("Versiyon dosyası okunamadı.")
+                
             remote_version = response.text.strip()
             
+            # 2. Bilgisayardaki versiyonu öğren
             local_version = self.get_local_version()
 
+            print(f"Sunucu: {remote_version} | Yerel: {local_version}") # Konsol kontrolü için
+
+            # 3. Karşılaştır
             if remote_version > local_version:
-                self.status_label.config(text=f"Yeni güncelleme var! ({remote_version})", fg="red")
-                self.update_button.config(state="normal")
+                self.status_label.config(text=f"Yeni güncelleme var! (v{remote_version})", fg="red")
+                self.update_button.config(state="normal") # Güncelle butonu aktif
             else:
                 self.status_label.config(text=f"Oyun Güncel (v{local_version})", fg="green")
-                self.play_button.config(state="normal")
+                # Eğer oyun dosyası fiziksel olarak varsa Oyna butonu aktif
+                if os.path.exists(GAME_FILENAME):
+                    self.play_button.config(state="normal")
+                else:
+                    self.status_label.config(text=f"Oyun dosyası eksik! Güncelleyin.", fg="orange")
+                    self.update_button.config(state="normal")
                 
         except Exception as e:
             self.status_label.config(text="Sunucu hatası!", fg="red")
-            messagebox.showerror("Hata", f"İnternet bağlantısı kurulamadı:\n{e}")
-            # Hata olsa bile oyun varsa oyna butonunu açalım
+            print(e)
+            # Hata olsa bile oyun varsa oyna butonunu açalım (Offline mod gibi)
             if os.path.exists(GAME_FILENAME):
                 self.play_button.config(state="normal")
 
     def start_update(self):
         self.update_button.config(state="disabled")
         self.play_button.config(state="disabled")
+        # İndirme işlemini arayüzü dondurmamak için thread içinde yapıyoruz
         threading.Thread(target=self.download_game).start()
 
     def download_game(self):
@@ -97,14 +111,14 @@ class LauncherApp:
                         self.progress['value'] = percent
                         self.root.update_idletasks()
 
-            # Versiyon dosyasını da güncelle (İnternetteki versiyonu kaydet)
+            # İndirme bitince GitHub'daki versiyonu yerel dosyaya kaydet
             response_ver = requests.get(VERSION_URL)
             with open(LOCAL_VERSION_FILE, "w") as f:
                 f.write(response_ver.text.strip())
 
             self.status_label.config(text="Güncelleme Tamamlandı!", fg="green")
             self.play_button.config(state="normal")
-            messagebox.showinfo("Başarılı", "Oyun başarıyla güncellendi!")
+            messagebox.showinfo("Başarılı", "Oyun başarıyla güncellendi! İyi eğlenceler.")
 
         except Exception as e:
             self.status_label.config(text="İndirme Hatası", fg="red")
@@ -115,7 +129,7 @@ class LauncherApp:
             self.root.destroy() # Launcher'ı kapat
             subprocess.Popen([GAME_FILENAME]) # Oyunu aç
         else:
-            messagebox.showerror("Hata", "Oyun dosyası bulunamadı!")
+            messagebox.showerror("Hata", f"{GAME_FILENAME} bulunamadı!")
 
 if __name__ == "__main__":
     root = tk.Tk()
