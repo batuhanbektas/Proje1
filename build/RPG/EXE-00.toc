@@ -1,8 +1,8 @@
 ('C:\\Users\\bthn_\\Desktop\\RPG-Game-Project\\dist\\RPG.exe',
+ True,
  False,
  False,
- False,
- 'C:\\Users\\bthn_\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python313\\site-packages\\PyInstaller\\bootloader\\images\\icon-windowed.ico',
+ 'C:\\Users\\bthn_\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python313\\site-packages\\PyInstaller\\bootloader\\images\\icon-console.ico',
  None,
  False,
  False,
@@ -274,9 +274,9 @@
  [],
  False,
  False,
- 1769863969,
- [('runw.exe',
-   'C:\\Users\\bthn_\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python313\\site-packages\\PyInstaller\\bootloader\\Windows-64bit-intel\\runw.exe',
+ 1769864871,
+ [('run.exe',
+   'C:\\Users\\bthn_\\AppData\\Local\\Packages\\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\\LocalCache\\local-packages\\Python313\\site-packages\\PyInstaller\\bootloader\\Windows-64bit-intel\\run.exe',
    'EXECUTABLE')],
  'C:\\Program '
  'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.2544.0_x64__qbz5n2kfra8p0\\python313.dll')
