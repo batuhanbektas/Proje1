@@ -1,26 +1,30 @@
 # Değişkenler
 PYTHON = python
-SCRIPT = RPG.py
-# Yeni build yöneticisi scriptimiz
-MANAGER = build_manager.py
+# Yolları güncelledik: src/ klasörünü ekledik
+MANAGER = src/build_manager.py
+SCRIPT = src/main.py
 
-# Varsayılan hedef: Sadece 'make' yazarsan direkt exe oluşturur
+# Varsayılan hedef
 all: exe
 
-# 'make run' yazınca oyunu normal python ile başlatır (hızlı test için)
+# Hızlı test (main.py'yi çalıştırır)
 run:
 	$(PYTHON) $(SCRIPT)
 
-# 'make exe' yazınca: 
-# 1. build_manager.py çalışır
-# 2. Version.txt güncellenir (örn: 0.05 -> 0.06)
-# 3. Otomatik olarak PyInstaller çalıştırılır
-exe:
-	$(PYTHON) $(MANAGER)
+# Sadece versiyon yükselt
+update:
+	$(PYTHON) $(MANAGER) update
 
-# 'make clean' yazınca gereksiz dosyaları temizler
+# Sadece build al
+exe:
+	$(PYTHON) $(MANAGER) build
+
+# Versiyon yükselt VE build al
+release: update exe
+
 clean:
 	if exist build rmdir /s /q build
 	if exist dist rmdir /s /q dist
 	if exist *.spec del /q *.spec
 	if exist __pycache__ rmdir /s /q __pycache__
+	if exist src\__pycache__ rmdir /s /q src\__pycache__

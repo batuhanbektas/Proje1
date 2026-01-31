@@ -2,7 +2,7 @@
 
 
 a = Analysis(
-    ['RPG.py'],
+    ['C:\\Users\\bthn_\\Desktop\\RPG-Game-Project\\src\\Launcher.py'],
     pathex=[],
     binaries=[],
     datas=[],
