@@ -24,10 +24,9 @@ def update_version(current_ver):
 def build_exe():
     print("🔨 PyInstaller çalıştırılıyor...")
     
-    # --- DEĞİŞİKLİK BURADA ---
-    # "pyinstaller" yerine [sys.executable, "-m", "PyInstaller"] kullanıyoruz.
-    # Bu, "python -m PyInstaller" komutunun kod halidir.
-    command = [sys.executable, "-m", "PyInstaller", "--noconsole", "--onefile", "--log-level", "ERROR", GAME_FILE]
+    # --- DÜZELTME BURADA ---
+    # "--noconsole" SİLİNDİ. Çünkü oyunun çalışması için o siyah ekrana ihtiyacı var.
+    command = [sys.executable, "-m", "PyInstaller", "--onefile", "--log-level", "ERROR", GAME_FILE]
     
     result = subprocess.run(command, capture_output=False)
     
