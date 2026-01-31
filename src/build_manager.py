@@ -1,29 +1,28 @@
 import os
 import subprocess
 import sys
+import shutil
 
 # --- YOL AYARLARI ---
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DIST_DIR = os.path.join(BASE_DIR, "dist")
 WORK_DIR = os.path.join(BASE_DIR, "build")
 
-# İSTEĞİN ÜZERİNE: Versiyon dosyası artık sadece DIST içinde aranıyor
-VERSION_FILE = os.path.join(DIST_DIR, "version.txt")
+# Version dosyası ana dizinde durmalı (Kaybolmaması için)
+VERSION_FILE_SRC = os.path.join(BASE_DIR, "version.txt")
+VERSION_FILE_DST = os.path.join(DIST_DIR, "version.txt")
 
-# Hedef scriptler
 LAUNCHER_SCRIPT = os.path.join(BASE_DIR, "src", "Launcher.py")
 GAME_SCRIPT = os.path.join(BASE_DIR, "src", "main.py") 
 
 def ensure_dist_exists():
-    """Dist klasörü yoksa oluşturur."""
     if not os.path.exists(DIST_DIR):
         os.makedirs(DIST_DIR)
 
 def get_current_version():
-    ensure_dist_exists()
-    if not os.path.exists(VERSION_FILE):
+    if not os.path.exists(VERSION_FILE_SRC):
         return 0.0
-    with open(VERSION_FILE, "r") as f:
+    with open(VERSION_FILE_SRC, "r") as f:
         try:
             return float(f.read().strip())
         except ValueError:
@@ -33,19 +32,29 @@ def update_version(current_ver):
     ensure_dist_exists()
     new_ver = round(current_ver + 0.01, 2)
     
-    # Doğrudan dist/version.txt güncelleniyor
-    with open(VERSION_FILE, "w") as f:
+    # 1. Ana dizindeki dosyayı güncelle (Kalıcılık için)
+    with open(VERSION_FILE_SRC, "w") as f:
         f.write(str(new_ver))
     
-    print(f"✅ Versiyon güncellendi (dist): {current_ver} -> {new_ver}")
+    # 2. Dist klasörüne kopyala (Dağıtım için)
+    shutil.copy(VERSION_FILE_SRC, VERSION_FILE_DST)
+    
+    print(f"✅ Versiyon güncellendi: {current_ver} -> {new_ver}")
     return new_ver
 
 def build_target(target_name, script_path, console=False):
     ensure_dist_exists()
     print(f"🔨 {target_name} oluşturuluyor...")
 
+    # Mevcut versiyonu dist'e kopyalayalım ki exe yanında bulunsun
+    if os.path.exists(VERSION_FILE_SRC):
+        shutil.copy(VERSION_FILE_SRC, VERSION_FILE_DST)
+
     console_option = "--console" if console else "--noconsole"
 
+    # --add-data kullanımı: Eğer assets klasörün varsa buraya eklemelisin!
+    # Örnek: "--add-data", f"{os.path.join(BASE_DIR, 'assets')}{os.pathsep}assets",
+    
     command = [
         sys.executable, "-m", "PyInstaller",
         "--onefile",
@@ -55,7 +64,7 @@ def build_target(target_name, script_path, console=False):
         "--workpath", WORK_DIR,
         "--log-level", "ERROR",
         "--name", target_name,
-        "--clean", # Önbelleği temizle
+        "--clean",
         script_path
     ]
     
@@ -63,26 +72,21 @@ def build_target(target_name, script_path, console=False):
     
     if result.returncode == 0:
         print(f"🚀 {target_name}.exe başarıyla oluşturuldu!")
-        # Version dosyası zaten dist içinde olduğu için kopyalamaya gerek yok
     else:
         print(f"❌ {target_name} Build Hatası!")
 
 if __name__ == "__main__":
     if len(sys.argv) > 1:
         action = sys.argv[1]
-        
         if action == "update":
             ver = get_current_version()
             update_version(ver)
-            
         elif action == "build_launcher":
             build_target("Launcher", LAUNCHER_SCRIPT, console=False)
-            
         elif action == "build_game":
-            build_target("RPG", GAME_SCRIPT, console=True)
-            
+            build_target("game", GAME_SCRIPT, console=True)
         elif action == "build_all":
-            build_target("RPG", GAME_SCRIPT, console=True)
+            build_target("game", GAME_SCRIPT, console=True)
             build_target("Launcher", LAUNCHER_SCRIPT, console=False)
     else:
-        print("⚠️ Eksik argüman. makefile üzerinden çalıştırın.")
+        print("⚠️ Eksik argüman.")
