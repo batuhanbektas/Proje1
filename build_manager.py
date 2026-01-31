@@ -1,5 +1,6 @@
 import os
 import subprocess
+import sys  # <--- Bunu ekledik, Python'un yerini bulmak için lazım
 
 VERSION_FILE = "version.txt"
 GAME_FILE = "RPG.py"
@@ -14,22 +15,21 @@ def get_current_version():
             return 0.0
 
 def update_version(current_ver):
-    # Versiyonu 0.01 artır (float hatasını önlemek için round kullanılır)
     new_ver = round(current_ver + 0.01, 2)
-    
     with open(VERSION_FILE, "w") as f:
         f.write(str(new_ver))
-    
     print(f"✅ Versiyon güncellendi: {current_ver} -> {new_ver}")
     return new_ver
 
 def build_exe():
     print("🔨 PyInstaller çalıştırılıyor...")
-    # --log-level ERROR sadece hataları gösterir, terminali kirletmez
-    result = subprocess.run(
-        ["pyinstaller", "--noconsole", "--onefile", "--log-level", "ERROR", GAME_FILE],
-        capture_output=False
-    )
+    
+    # --- DEĞİŞİKLİK BURADA ---
+    # "pyinstaller" yerine [sys.executable, "-m", "PyInstaller"] kullanıyoruz.
+    # Bu, "python -m PyInstaller" komutunun kod halidir.
+    command = [sys.executable, "-m", "PyInstaller", "--noconsole", "--onefile", "--log-level", "ERROR", GAME_FILE]
+    
+    result = subprocess.run(command, capture_output=False)
     
     if result.returncode == 0:
         print("🚀 Build Başarılı! (dist/RPG.exe)")
