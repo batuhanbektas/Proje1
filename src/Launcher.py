@@ -5,26 +5,23 @@ import os
 import subprocess
 import threading
 import sys
+import time
 
 # --- SSL SERTİFİKA HATASI ÇÖZÜMÜ ---
-# PyInstaller ile paketlendiğinde certifi dosyası kayboluyor.
-# Bu kod, sertifikanın sys._MEIPASS içindeki yerini bulur.
 def get_cert_path():
     if hasattr(sys, '_MEIPASS'):
         return os.path.join(sys._MEIPASS, 'certifi', 'cacert.pem')
     import certifi
     return certifi.where()
 
-# SSL yolunu sisteme tanıtıyoruz
 os.environ['REQUESTS_CA_BUNDLE'] = get_cert_path()
 # -----------------------------------
 
 # --- AYARLAR ---
+# GitHub Raw linklerinin doğru olduğundan emin ol
 VERSION_URL = "https://github.com/batuhanbektas/Proje1/raw/refs/heads/main/dist/version.txt"
 GAME_URL = "https://github.com/batuhanbektas/Proje1/raw/refs/heads/main/dist/game.exe"
 
-# ÖNEMLİ: İnen oyunun adı "RPG.exe" değil, "Game.exe" olsun.
-# Çünkü senin Launcher'ının adı zaten RPG.exe ise çakışır!
 GAME_FILENAME = "game.exe" 
 LOCAL_VERSION_FILE = "version.txt" 
 
@@ -62,8 +59,9 @@ class LauncherApp:
         try:
             self.status_label.config(text="Sunucuya bağlanılıyor...")
             
-            # verify=True varsayılan değerdir, yukarıdaki SSL yaması sayesinde çalışacak
-            response = requests.get(VERSION_URL, timeout=5)
+            # Cache Busting (Önbellek Kırma) - Kontrol için
+            no_cache_url = f"{VERSION_URL}?t={int(time.time())}"
+            response = requests.get(no_cache_url, timeout=5)
             
             if response.status_code != 200:
                 raise Exception(f"Hata Kodu: {response.status_code}")
@@ -98,6 +96,8 @@ class LauncherApp:
     def download_game(self):
         try:
             self.status_label.config(text="İndiriliyor...")
+            
+            # 1. Oyunu İndir
             response = requests.get(GAME_URL, stream=True)
             total_size = int(response.headers.get('content-length', 0))
             
@@ -111,14 +111,16 @@ class LauncherApp:
                         self.progress['value'] = percent
                         self.root.update_idletasks()
 
-            # Version dosyasını da güncelle
-            ver_response = requests.get(VERSION_URL)
+            # 2. Versiyonu Güncelle (Cache Busting ile)
+            no_cache_url = f"{VERSION_URL}?t={int(time.time())}"
+            ver_response = requests.get(no_cache_url)
+            
             with open(LOCAL_VERSION_FILE, "w") as f:
                 f.write(ver_response.text.strip())
 
             self.status_label.config(text="Güncelleme Tamamlandı!", fg="green")
             self.play_button.config(state="normal")
-            messagebox.showinfo("Başarılı", "Oyun indi!")
+            messagebox.showinfo("Başarılı", "Oyun başarıyla indirildi/güncellendi!")
 
         except Exception as e:
             self.status_label.config(text="İndirme Hatası", fg="red")
