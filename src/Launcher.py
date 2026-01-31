@@ -68,6 +68,15 @@ class LauncherApp:
                 
             remote_version = response.text.strip()
             local_version = self.get_local_version()
+
+            # --- AJAN KOD (Bunu ekle ki görelim) ---
+            messagebox.showinfo("DEBUG BİLGİSİ", 
+                                f"İstek Yapılan URL:\n{no_cache_url}\n\n"
+                                f"Sunucudan Gelen Veri: '{remote_version}'\n"
+                                f"Bilgisayardaki Veri: '{local_version}'")
+            # ---------------------------------------
+
+            
             print(f"Sunucu: {remote_version} | Yerel: {local_version}")
 
             if float(remote_version) > float(local_version):
