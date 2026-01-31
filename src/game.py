@@ -4,7 +4,7 @@ from src.models import Hero, Enemy
 class Game:
     def __init__(self):
         self.is_running = True
-        name = input("Kahramanın adı: ")
+        name = input("YARRAK KAFA: ")
         self.player = Hero(name)
         self.enemy = None
     

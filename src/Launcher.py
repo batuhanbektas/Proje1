@@ -21,11 +21,11 @@ os.environ['REQUESTS_CA_BUNDLE'] = get_cert_path()
 
 # --- AYARLAR ---
 VERSION_URL = "https://github.com/batuhanbektas/Proje1/raw/refs/heads/main/dist/version.txt"
-GAME_URL = "https://github.com/batuhanbektas/Proje1/raw/refs/heads/main/dist/RPG.exe"
+GAME_URL = "https://github.com/batuhanbektas/Proje1/raw/refs/heads/main/dist/game.exe"
 
 # ÖNEMLİ: İnen oyunun adı "RPG.exe" değil, "Game.exe" olsun.
 # Çünkü senin Launcher'ının adı zaten RPG.exe ise çakışır!
-GAME_FILENAME = "Game.exe" 
+GAME_FILENAME = "game.exe" 
 LOCAL_VERSION_FILE = "version.txt" 
 
 class LauncherApp:
