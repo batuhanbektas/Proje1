@@ -1,30 +1,36 @@
 # Değişkenler
 PYTHON = python
-# Yolları güncelledik: src/ klasörünü ekledik
-MANAGER = src/build_manager.py
 SCRIPT = src/main.py
+MANAGER = src/build_manager.py
 
-# Varsayılan hedef
-all: exe
+# Varsayılan (sadece make yazınca çalışır)
+default: all
 
-# Hızlı test (main.py'yi çalıştırır)
-run:
-	$(PYTHON) $(SCRIPT)
+# 1. HEDEF: make exe -> Sadece oyun
+exe:
+	$(PYTHON) $(MANAGER) build_game
 
-# Sadece versiyon yükselt
+# 2. HEDEF: make launcher -> Sadece launcher
+launcher:
+	$(PYTHON) $(MANAGER) build_launcher
+
+# 3. HEDEF: make all -> İkisi birden
+all:
+	$(PYTHON) $(MANAGER) build_all
+
+# 4. HEDEF: make update -> Versiyonu artırır
 update:
 	$(PYTHON) $(MANAGER) update
 
-# Sadece build al
-exe:
-	$(PYTHON) $(MANAGER) build
+# Test etmek için
+run:
+	$(PYTHON) $(SCRIPT)
 
-# Versiyon yükselt VE build al
-release: update exe
-
+# TEMİZLİK (GÜVENLİ MOD)
+# DİKKAT: dist klasörünü komple silmiyoruz ki version.txt kaybolmasın!
 clean:
 	if exist build rmdir /s /q build
-	if exist dist rmdir /s /q dist
+	if exist dist\*.exe del /q dist\*.exe
 	if exist *.spec del /q *.spec
 	if exist __pycache__ rmdir /s /q __pycache__
 	if exist src\__pycache__ rmdir /s /q src\__pycache__

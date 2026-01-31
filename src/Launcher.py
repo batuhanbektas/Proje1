@@ -1,137 +1,86 @@
-import tkinter as tk
-from tkinter import messagebox, ttk
-import requests
 import os
 import subprocess
-import threading
 import sys
+import shutil
 
-# --- SSL SERTİFİKA HATASI ÇÖZÜMÜ ---
-# PyInstaller ile paketlendiğinde certifi dosyası kayboluyor.
-# Bu kod, sertifikanın sys._MEIPASS içindeki yerini bulur.
-def get_cert_path():
-    if hasattr(sys, '_MEIPASS'):
-        return os.path.join(sys._MEIPASS, 'certifi', 'cacert.pem')
-    import certifi
-    return certifi.where()
+# --- YOL AYARLARI ---
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+VERSION_FILE = os.path.join(BASE_DIR, "version.txt")
+DIST_DIR = os.path.join(BASE_DIR, "dist")
+WORK_DIR = os.path.join(BASE_DIR, "build")
 
-# SSL yolunu sisteme tanıtıyoruz
-os.environ['REQUESTS_CA_BUNDLE'] = get_cert_path()
-# -----------------------------------
+# İki farklı hedefimiz var:
+LAUNCHER_SCRIPT = os.path.join(BASE_DIR, "src", "Launcher.py")
+GAME_SCRIPT = os.path.join(BASE_DIR, "src", "main.py") # Oyunun ana dosyası (main.py veya game.py)
 
-# --- AYARLAR ---
-VERSION_URL = "https://github.com/batuhanbektas/Proje1/raw/refs/heads/main/version.txt"
-GAME_URL = "https://github.com/batuhanbektas/Proje1/raw/refs/heads/main/dist/RPG.exe"
-
-# ÖNEMLİ: İnen oyunun adı "RPG.exe" değil, "Game.exe" olsun.
-# Çünkü senin Launcher'ının adı zaten RPG.exe ise çakışır!
-GAME_FILENAME = "Game.exe" 
-LOCAL_VERSION_FILE = "version.txt" 
-
-class LauncherApp:
-    def __init__(self, root):
-        self.root = root
-        self.root.title("RPG Oyun Launcher")
-        self.root.geometry("300x250")
-        self.root.resizable(False, False)
-
-        self.label = tk.Label(root, text="RPG OYUNU", font=("Helvetica", 16, "bold"))
-        self.label.pack(pady=20)
-
-        self.status_label = tk.Label(root, text="Kontrol ediliyor...", fg="gray")
-        self.status_label.pack(pady=5)
-
-        self.progress = ttk.Progressbar(root, orient="horizontal", length=200, mode="determinate")
-        self.progress.pack(pady=10)
-
-        self.play_button = tk.Button(root, text="OYNA", command=self.launch_game, state="disabled", bg="green", fg="white", font=("Arial", 12))
-        self.play_button.pack(pady=5)
-
-        self.update_button = tk.Button(root, text="GÜNCELLE", command=self.start_update, state="disabled", bg="orange", fg="white", font=("Arial", 12))
-        self.update_button.pack(pady=5)
-
-        threading.Thread(target=self.check_updates).start()
-
-    def get_local_version(self):
-        if os.path.exists(LOCAL_VERSION_FILE):
-            with open(LOCAL_VERSION_FILE, "r") as f:
-                return f.read().strip()
-        return "0.0"
-
-    def check_updates(self):
+def get_current_version():
+    if not os.path.exists(VERSION_FILE):
+        return 0.0
+    with open(VERSION_FILE, "r") as f:
         try:
-            self.status_label.config(text="Sunucuya bağlanılıyor...")
-            
-            # verify=True varsayılan değerdir, yukarıdaki SSL yaması sayesinde çalışacak
-            response = requests.get(VERSION_URL, timeout=5)
-            
-            if response.status_code != 200:
-                raise Exception(f"Hata Kodu: {response.status_code}")
-                
-            remote_version = response.text.strip()
-            local_version = self.get_local_version()
-            print(f"Sunucu: {remote_version} | Yerel: {local_version}")
+            return float(f.read().strip())
+        except ValueError:
+            return 0.0
 
-            if float(remote_version) > float(local_version):
-                self.status_label.config(text=f"Yeni güncelleme: v{remote_version}", fg="red")
-                self.update_button.config(state="normal")
-            else:
-                self.status_label.config(text=f"Oyun Güncel (v{local_version})", fg="green")
-                if os.path.exists(GAME_FILENAME):
-                    self.play_button.config(state="normal")
-                else:
-                    self.status_label.config(text="Oyun dosyası eksik!", fg="orange")
-                    self.update_button.config(state="normal")
-                
-        except Exception as e:
-            print(f"Hata Detayı: {e}")
-            self.status_label.config(text="Sunucu hatası!", fg="red")
-            # İnternet yoksa ama oyun varsa yine de oynamaya izin ver
-            if os.path.exists(GAME_FILENAME):
-                self.play_button.config(state="normal")
+def update_version(current_ver):
+    new_ver = round(current_ver + 0.01, 2)
+    with open(VERSION_FILE, "w") as f:
+        f.write(str(new_ver))
+    
+    # Dist varsa oraya da kopyala
+    if not os.path.exists(DIST_DIR):
+        os.makedirs(DIST_DIR)
+    shutil.copy(VERSION_FILE, os.path.join(DIST_DIR, "version.txt"))
 
-    def start_update(self):
-        self.update_button.config(state="disabled")
-        self.play_button.config(state="disabled")
-        threading.Thread(target=self.download_game).start()
+    print(f"✅ Versiyon güncellendi: {current_ver} -> {new_ver}")
+    return new_ver
 
-    def download_game(self):
-        try:
-            self.status_label.config(text="İndiriliyor...")
-            response = requests.get(GAME_URL, stream=True)
-            total_size = int(response.headers.get('content-length', 0))
-            
-            with open(GAME_FILENAME, 'wb') as file:
-                downloaded = 0
-                for data in response.iter_content(1024):
-                    file.write(data)
-                    downloaded += len(data)
-                    if total_size > 0:
-                        percent = (downloaded / total_size) * 100
-                        self.progress['value'] = percent
-                        self.root.update_idletasks()
+def build_target(target_name, script_path, console=False):
+    print(f"🔨 {target_name} için PyInstaller çalıştırılıyor...")
 
-            # Version dosyasını da güncelle
-            ver_response = requests.get(VERSION_URL)
-            with open(LOCAL_VERSION_FILE, "w") as f:
-                f.write(ver_response.text.strip())
+    # Launcher için siyah ekran olmasın (console=False), ama Oyun için olsun (console=True)
+    console_option = "--console" if console else "--noconsole"
 
-            self.status_label.config(text="Güncelleme Tamamlandı!", fg="green")
-            self.play_button.config(state="normal")
-            messagebox.showinfo("Başarılı", "Oyun indi!")
-
-        except Exception as e:
-            self.status_label.config(text="İndirme Hatası", fg="red")
-            messagebox.showerror("Hata", str(e))
-
-    def launch_game(self):
-        if os.path.exists(GAME_FILENAME):
-            self.root.destroy() # Launcher kapanır
-            subprocess.Popen([GAME_FILENAME]) # Oyun açılır
-        else:
-            messagebox.showerror("Hata", "Oyun dosyası bulunamadı!")
+    command = [
+        sys.executable, "-m", "PyInstaller",
+        "--onefile",
+        console_option,
+        "--collect-all", "certifi", # SSL hatası için gerekli
+        "--distpath", DIST_DIR,
+        "--workpath", WORK_DIR,
+        "--log-level", "ERROR",
+        "--name", target_name, # Çıkan exe'nin adı
+        script_path
+    ]
+    
+    result = subprocess.run(command, capture_output=False)
+    
+    if result.returncode == 0:
+        print(f"🚀 {target_name}.exe başarıyla oluşturuldu! ({DIST_DIR})")
+        # Version dosyasını da yanına koyalım
+        if os.path.exists(VERSION_FILE):
+             shutil.copy(VERSION_FILE, os.path.join(DIST_DIR, "version.txt"))
+    else:
+        print(f"❌ {target_name} Build Hatası!")
 
 if __name__ == "__main__":
-    root = tk.Tk()
-    app = LauncherApp(root)
-    root.mainloop()
+    if len(sys.argv) > 1:
+        action = sys.argv[1]
+        
+        if action == "update":
+            ver = get_current_version()
+            update_version(ver)
+            
+        elif action == "build_launcher":
+            # Launcher'ı "Launcher.exe" adıyla üret
+            build_target("Launcher", LAUNCHER_SCRIPT, console=False)
+            
+        elif action == "build_game":
+            # Oyunu "RPG.exe" adıyla üret (GitHub'da bu isimle bekliyor)
+            build_target("RPG", GAME_SCRIPT, console=True)
+            
+        elif action == "build_all":
+            build_target("Launcher", LAUNCHER_SCRIPT, console=False)
+            build_target("RPG", GAME_SCRIPT, console=True)
+    else:
+        print("⚠️ Komutlar: update, build_launcher, build_game, build_all")
