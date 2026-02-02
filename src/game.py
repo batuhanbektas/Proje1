@@ -1,5 +1,6 @@
 import time
-from src.models import Hero, Enemy
+from models import Hero, Enemy
+import random as rnd
 
 class Game:
     def __init__(self):
@@ -16,28 +17,31 @@ class Game:
             
             match choice:
                 case "1":
-                    if self.player.potion < 10:
+                    if self.player.potion < self.player.size:
                         self.player.potion += 1
                         print("İksir alındı.")
                     else:
                         print("Çanta dolu!")
+                        time.sleep(1)
                 case "2":
                     break
                 case _:
                     print("Geçersiz işlem.")
+        
 
     def battle_phase(self):
         # Düşman yoksa yeni yarat
         if not self.enemy or not self.enemy.is_alive():
             self.enemy = Enemy()
             print(f"\n⚠️ Vahşi bir {self.enemy.name} belirdi!")
+            time.sleep(1)
 
         print("-" * 30)
         self.player.info()
         self.enemy.info()
         print("-" * 30)
 
-        print("1. Saldır | 2. İyileş | 3. Mağaza | 4. Çık")
+        print("1. Saldır | 2. İyileş  | 3. Çık")
         choice = input("Kararın: ")
 
         match choice:
@@ -49,15 +53,22 @@ class Game:
                     print(f"💀 {self.enemy.name} öldü!")
                     self.player.gain_xp(self.enemy.xp_value)
                     self.enemy = None # Düşmanı sıfırla
+                    print("Mağazaya uğramak ister misin:")
+                    karar = input("1 - Evet ||| 2 - Hayır")
+                    while True:
+                        if karar=="1":
+                            self.shop_menu()
+                            break
+                        elif karar =="2":
+                            break
+                        else:
+                            print("GEÇERSİZ")
+
             case "2":
                 self.player.heal()
                 if self.enemy and self.enemy.is_alive():
                     self.enemy.attack(self.player)
             case "3":
-                # Savaş ortasında mağazaya girmek ister misin? 
-                # Mantıken savaş bitince açılması daha iyi ama senin koduna sadık kaldım.
-                self.shop_menu()
-            case "4":
                 self.is_running = False
             case _:
                 print("Geçersiz hamle.")

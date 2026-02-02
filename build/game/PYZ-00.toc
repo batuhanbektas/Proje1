@@ -192,6 +192,9 @@
    'C:\\Program '
    'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.2544.0_x64__qbz5n2kfra8p0\\Lib\\fractions.py',
    'PYMODULE'),
+  ('game',
+   'C:\\Users\\bthn_\\Desktop\\RPG-Game-Project\\src\\game.py',
+   'PYMODULE'),
   ('getopt',
    'C:\\Program '
    'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.2544.0_x64__qbz5n2kfra8p0\\Lib\\getopt.py',
@@ -332,6 +335,9 @@
    'C:\\Program '
    'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.2544.0_x64__qbz5n2kfra8p0\\Lib\\lzma.py',
    'PYMODULE'),
+  ('models',
+   'C:\\Users\\bthn_\\Desktop\\RPG-Game-Project\\src\\models.py',
+   'PYMODULE'),
   ('numbers',
    'C:\\Program '
    'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.2544.0_x64__qbz5n2kfra8p0\\Lib\\numbers.py',
@@ -387,13 +393,6 @@
   ('socket',
    'C:\\Program '
    'Files\\WindowsApps\\PythonSoftwareFoundation.Python.3.13_3.13.2544.0_x64__qbz5n2kfra8p0\\Lib\\socket.py',
-   'PYMODULE'),
-  ('src', '-', 'PYMODULE'),
-  ('src.game',
-   'C:\\Users\\bthn_\\Desktop\\RPG-Game-Project\\src\\game.py',
-   'PYMODULE'),
-  ('src.models',
-   'C:\\Users\\bthn_\\Desktop\\RPG-Game-Project\\src\\models.py',
    'PYMODULE'),
   ('statistics',
    'C:\\Program '

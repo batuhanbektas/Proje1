@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 import random as rnd
+import time
 
 # Soyut Sınıf (Interface mantığı)
 class Character(ABC):
@@ -8,7 +9,6 @@ class Character(ABC):
         self.hp = 100
         self.ad = rnd.randint(5, 15)
         self.level = 1
-
     @abstractmethod
     def attack(self, target):
         pass
@@ -17,31 +17,99 @@ class Character(ABC):
         return self.hp > 0
 
     def info(self):
-        print(f"[{self.name}] Can: {self.hp} | Güç: {self.ad}")
-
+        pass
 class Hero(Character):
     def __init__(self, name):
         super().__init__(name)
         self.potion = 10
         self.xp = 0
         self.xp_next = 20
+        self.size = 10
+        self.max_hp = 100
+
+    def level_up(self):
+        while True:
+            choice = input("""Neyi Geliştirmek istersin: 
+                  Seçeneklerin Şunlar:
+                  1- Rastgele can artışı 1 ile 20 arasında
+                  2- Rastgele hasar artışı 1 ile 5 arasında
+                  3- Çanta kapasiten 1 ile 5 arasında
+                           """)
+            match choice:
+                case "1":
+                    print(" CAN ARTTIRMAYI SEÇTİN")
+                    input("Lütfen zar atmak için bir tuşa bas")
+                    print("Zar Atılıyor....")
+                    time.sleep(1)
+                    dice = rnd.randint(1,20)
+                    print(f"Attığın zar {dice}!!! Eski Canın {self.max_hp}")
+                    time.sleep(1)
+                    self.max_hp += dice
+                    print(f"YENİ CANIN: {self.max_hp} ")
+                    time.sleep(1)
+                    break
+
+                case "2":
+                    print(" HASAR ARTTIRMAYI SEÇTİN")
+                    input("Lütfen zar atmak için bir tuşa bas")
+                    print("Zar Atılıyor....")
+                    time.sleep(1)
+                    dice = rnd.randint(1,5)
+                    print(f"Attığın zar {dice}!!! Eski Hasarın {self.ad}")
+                    time.sleep(1)
+                    self.ad += dice
+                    print(f"YENİ HASARIN: {self.ad} ")
+                    time.sleep(1)
+                    break
+                case "3":
+                    print(" ENVANTER ARTTIRMAYI SEÇTİN")
+                    input("Lütfen zar atmak için bir tuşa bas")
+                    print("Zar Atılıyor....")
+                    time.sleep(1)
+                    dice = rnd.randint(1,5)
+                    print(f"Attığın zar {dice}!!! Eski Envanterin{self.size}")
+                    time.sleep(1)
+                    self.size += dice
+                    print(f"YENİ ENVANTERİN: {self.size} ")
+                    time.sleep(1)
+                    break
+                case _:
+                    print("GEÇERSİZ" )
+
+                    
+
+    def info(self):
+        print(f"[{self.name}] Can: {self.hp}/{self.max_hp} | Güç: {self.ad} | Level: {self.level} | XP: {self.xp} | Kalan XP: {self.xp_next - self.xp } ")
 
     def attack(self, target):
         dice = rnd.randint(1, 20)
-        print(f"\n🎲 Zar: {dice}")
-        
-        if dice < 5:
-            print(f"❌ {self.name} Iskaladı!")
+        input("Zar atmak için bir tuşa bas: ")
+        print("Zar Atılıyor...")
+        time.sleep(1)
+        if(dice == 20):
+            print(f"ZAR 20 , KRİTİK VURDUN")
         else:
-            damage = self.ad * 2 if dice == 20 else self.ad
-            target.hp -= damage
-            print(f"⚔️ {self.name} -> {target.name} ({damage} hasar)")
+            print(f"\n🎲 Zar: {dice}")        
+        time.sleep(1)
+        
+        if dice <= 5:
+            print(f"❌ {self.name} Iskaladı!")
+            time.sleep(1)
+        elif dice >5 and dice != 20:
+            target.hp = target.hp - self.ad
+            print(f"{self.name} {self.ad} Hasar Vurdu -> {target.name} ") 
+            time.sleep(0.5)
+        else:
+            damage = 2*self.ad
+            target.hp = target.hp - damage
+            print(f"{self.name} {damage} KRİTİK Hasar Vurdu -> {target.name} ") 
+            time.sleep(0.5)
 
     def heal(self):
-        if self.potion > 0 and self.hp < 100:
-            self.hp = min(100, self.hp + 15)
+        if self.potion > 0 and self.hp < self.max_hp:
+            self.hp = min(self.max_hp, self.hp + 15)
             self.potion -= 1
-            print(f"💚 İyileştin. Can: {self.hp} | Kalan İksir: {self.potion}")
+            print(f"💚 İyileştin. Can: {self.hp}/{self.max_hp} | Kalan İksir: {self.potion}")
         else:
             print("İksir yok veya canın dolu!")
 
@@ -49,10 +117,11 @@ class Hero(Character):
         self.xp += amount
         if self.xp >= self.xp_next:
             self.level += 1
-            self.ad += 5
             self.xp -= self.xp_next
             self.xp_next += 10
             print(f"🆙 LEVEL UP! Yeni Level: {self.level}")
+            time.sleep(1.5)
+            self.level_up()
 
 class Enemy(Character):
     def __init__(self):
@@ -61,8 +130,13 @@ class Enemy(Character):
         super().__init__(name)
         self.hp = rnd.randint(20, 30)
         self.ad = 5
-        self.xp_value = 15
+        self.xp_value = rnd.randint(10,20)
 
     def attack(self, target):
         target.hp -= self.ad
         print(f"👹 {self.name} sana saldırdı! {self.ad} hasar aldın.")
+    
+    def info(self):
+           print(f"[{self.name}] Can: {self.hp} | Güç: {self.ad} | XP: {self.xp_value}")
+        
+        
