@@ -1,14 +1,34 @@
 import time
-from models import Hero, Enemy
+from models import Hero, Enemy, Boss
 import random as rnd
 
 class Game:
     def __init__(self):
         self.is_running = True
-        name = input("Kahramanın Adı: ")
-        self.player = Hero(name)
+        self.player = None
         self.enemy = None
-    
+        self.set_name()
+
+
+    def set_name(self):
+        i = 0
+        banned = ["nigger", "NIGGER", "zigger", "ZIGGER", "nigga", "NIGGA", "zigga", "ZIGGA", "zenci", "ZENCİ", "digger", "DIGGER", "Digger", "diger", "DİGER", "Diger", "Diger ", "Bigger", "bigger", "BİGGER", "bİgger"]
+        while True:
+            name = input("Kahramanın Adı: ")
+            if name in banned and name:
+                i += 1  
+                if i<3:
+                    print("BU ISMI YAPAMAZSIN YARRAK KAFA OMER")
+                elif 3 <= i < 5:
+                    print("HAHAHHAHAHAHAHAHAHH MAL AMK")
+                else:
+                    print("denicen mi boyle sonsuza kadar")        
+            else:
+                self.player = Hero(name)
+                return self.player
+
+
+
     def shop_menu(self):
         while True:
             print("\n--- MAĞAZA ---")
@@ -17,11 +37,12 @@ class Game:
             
             match choice:
                 case "1":
-                    if self.player.potion < self.player.size:
+                    if self.player.potion < self.player.size and self.player.purse >= 10:
                         self.player.potion += 1
-                        print("İksir alındı.")
+                        self.player.purse -= 10
+                        print("İksir alındı. Kalan para: ", self.player.purse)
                     else:
-                        print("Çanta dolu!")
+                        print("Çanta dolu ya da yeterli paran yok!")
                         time.sleep(1)
                 case "2":
                     break
@@ -31,7 +52,12 @@ class Game:
 
     def battle_phase(self):
         # Düşman yoksa yeni yarat
-        if not self.enemy or not self.enemy.is_alive():
+        if self.player.recently_leveled:
+            print("Seviyen yükseldi! Yeni düşman geliyor...")
+            time.sleep(2)
+            self.enemy = Boss()  # Boss düşmanı yarat
+            self.player.recently_leveled = False
+        elif not self.enemy or not self.enemy.is_alive():
             self.enemy = Enemy()
             print(f"\n⚠️ Vahşi bir {self.enemy.name} belirdi!")
             time.sleep(1)
@@ -50,9 +76,11 @@ class Game:
                 if self.enemy.is_alive():
                     self.enemy.attack(self.player)
                 else:
-                    print(f"💀 {self.enemy.name} öldü!")
+                    print(f"💀 {self.enemy.name} öldü! Kazandigin XP: {self.enemy.xp_value}, Kazandigin Gold: {self.enemy.value}")
+                    self.player.purse += self.enemy.value
                     self.player.gain_xp(self.enemy.xp_value)
                     self.enemy = None # Düşmanı sıfırla
+
                     print("Mağazaya uğramak ister misin:")
                     karar = input("1 - Evet ||| 2 - Hayır")
                     while True:

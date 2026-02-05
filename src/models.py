@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 import random as rnd
 import time
-
+import json
 # Soyut Sınıf (Interface mantığı)
 class Character(ABC):
     def __init__(self, name):
@@ -18,7 +18,7 @@ class Character(ABC):
 
     def info(self):
         pass
-class Hero(Character):
+class Hero(Character): 
     def __init__(self, name):
         super().__init__(name)
         self.potion = 10
@@ -26,6 +26,8 @@ class Hero(Character):
         self.xp_next = 20
         self.size = 10
         self.max_hp = 100
+        self.recently_leveled = False
+        self.purse = 0
 
     def level_up(self):
         while True:
@@ -74,12 +76,10 @@ class Hero(Character):
                     time.sleep(1)
                     break
                 case _:
-                    print("GEÇERSİZ" )
-
-                    
+                    print("GEÇERSİZ" )          
 
     def info(self):
-        print(f"[{self.name}] Can: {self.hp}/{self.max_hp} | Güç: {self.ad} | Level: {self.level} | XP: {self.xp} | Kalan XP: {self.xp_next - self.xp } ")
+        print(f"[{self.name}] Can: {self.hp}/{self.max_hp} | Güç: {self.ad} | Level: {self.level} | XP: {self.xp} | Kalan XP: {self.xp_next - self.xp } | Para: {self.purse}")
 
     def attack(self, target):
         dice = rnd.randint(1, 20)
@@ -113,7 +113,7 @@ class Hero(Character):
         else:
             print("İksir yok veya canın dolu!")
 
-    def gain_xp(self, amount):
+    def gain_xp(self, amount):      
         self.xp += amount
         if self.xp >= self.xp_next:
             self.level += 1
@@ -122,6 +122,7 @@ class Hero(Character):
             print(f"🆙 LEVEL UP! Yeni Level: {self.level}")
             time.sleep(1.5)
             self.level_up()
+            self.recently_leveled = True
 
 class Enemy(Character):
     def __init__(self):
@@ -130,13 +131,27 @@ class Enemy(Character):
         super().__init__(name)
         self.hp = rnd.randint(20, 30)
         self.ad = 5
-        self.xp_value = rnd.randint(10,20)
+        self.xp_value = rnd.randint(10, 20)
+        self.value = rnd.randint(5,15)
 
     def attack(self, target):
-        target.hp -= self.ad
-        print(f"👹 {self.name} sana saldırdı! {self.ad} hasar aldın.")
+        dice = rnd.randint(1, 20)
+        if dice <= 5:
+            print(f"❌ {self.name} Iskaladı!")
+        else:
+            target.hp -= self.ad
+            print(f"👹 {self.name} sana saldırdı! {self.ad} hasar aldın.")
     
     def info(self):
            print(f"[{self.name}] Can: {self.hp} | Güç: {self.ad} | XP: {self.xp_value}")
         
-        
+class Boss(Enemy):
+    def __init__(self):
+        bosses = ["Dragon", "Demon Lord", "Giant"]
+        name = rnd.choice(bosses)
+        super().__init__()
+        self.name = name
+        self.hp = rnd.randint(100, 150)
+        self.ad = rnd.randint(15, 25)
+        self.xp_value = rnd.randint(50, 100)
+        self.value = rnd.randint(50,100)
